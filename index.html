@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Приложение 3</title>
+  <link rel="stylesheet" href="pure-min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="htmx-min.js"></script>
+  <script src="nunjucks-min.js"></script>
+</head>
+
+<body id="htmxbody" hx-ext="client-side-templates">
+  <p id="content">Start</p>
+  <button hx-get="https://api.spaceflightnewsapi.net/v4/articles/"
+          hx-swap="innerHTML"
+          hx-target="#content"
+          nunjucks-template="nasa">
+    Click Me
+  </button>
+
+  </br>
+  <p id="joke-container">Click the button to load a joke...</p>
+  </br>
+
+  <div class="footer is-center">
+    <button class="pure-button">QR</button>
+    <button
+      class="pure-button"
+      hx-get="/two"
+      hx-target="#htmxbody" 
+    >
+      Второй
+    </button>
+    <button
+      class="pure-button"
+      hx-get="https://v2.jokeapi.dev/joke/Any?format=txt&safe-mode&type=single"
+      hx-target="#joke-container" 
+    >
+      Шутки
+    </button>
+  </div>
+  <template id="nasa">
+    {% for article in results %}
+    <div>
+        <hr />
+        <h2>
+            <a href="{{ article.url }}" target="_blank"
+                >{{ article.title }}</a
+            >
+        </h2>
+        <h4>
+            Published by {{ article.news_site }}, {{
+            article.published_at | truncate(10, true, "")}}
+        </h4>
+        <p>{{ article.summary }}</p>
+    </div>
+    {% endfor %}
+  </template>
+</body>
+<script>
+  // CORS workaround
+  document.addEventListener("htmx:configRequest", (evt) => {
+    evt.detail.headers = [];
+  });
+
+  //nunjuks
+  htmx.defineExtension('client-side-templates', {
+      transformResponse: function (text, xhr, elt) {
+
+        var nunjucksTemplate = htmx.closest(elt, "[nunjucks-template]");
+        if (nunjucksTemplate) {
+          var data = JSON.parse(text);
+          var templateName = nunjucksTemplate.getAttribute('nunjucks-template');
+          var template = htmx.find('#' + templateName);
+          if (template) {
+            return nunjucks.renderString(template.innerHTML, data);
+          } else {
+            return nunjucks.render(templateName, data);
+          }
+        }
+
+        var nunjucksArrayTemplate = htmx.closest(elt, "[nunjucks-array-template]");
+        if (nunjucksArrayTemplate) {
+          var data = JSON.parse(text);
+          var templateName = nunjucksArrayTemplate.getAttribute('nunjucks-array-template');
+          var template = htmx.find('#' + templateName);
+          if (template) {
+            return nunjucks.renderString(template.innerHTML, { "data": data });
+          } else {
+            return nunjucks.render(templateName, { "data": data });
+          }
+        }
+        return text;
+      }
+    });
+</script>
+</html>
