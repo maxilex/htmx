@@ -12,12 +12,14 @@
 </head>
 
 <body id="htmxbody" hx-ext="client-side-templates">
+  <span class="loader htmx-indicator"></span>
   <p id="content">Start</p>
   <button id ="start_btn" 
     hx-get=""
     hx-swap="innerHTML"
     hx-target="#content"
     nunjucks-template="nasa"
+    hx-indicator=".loader"
   >
     Нажми меня
   </button>
